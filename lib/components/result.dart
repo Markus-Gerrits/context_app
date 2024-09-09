@@ -16,14 +16,14 @@ class Result extends StatelessWidget {
       );
     }
     if (distance < 0) {
-      return Padding(
-        padding: const EdgeInsets.only(top: 10.0),
+      return const Padding(
+        padding: EdgeInsets.only(top: 10.0),
         child: Text('Não conheço esta palavra'),
       );
     }
     return Padding(
       padding: const EdgeInsets.only(top: 10.0),
-      child: WordItem(distance, word),
+      child: WordItem(distance: distance, word: word),
     );
   }
 }

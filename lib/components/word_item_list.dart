@@ -7,7 +7,11 @@ class WordItem extends StatelessWidget {
   final int distance;
   final String word;
 
-  const WordItem(this.distance, this.word, {super.key});
+  const WordItem({
+    required this.distance,
+    required this.word,
+    super.key
+  });
 
   Color getColor() {
     if (distance.toDouble() < Dimensions.nearDistanceRef) {

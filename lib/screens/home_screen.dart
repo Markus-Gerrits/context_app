@@ -24,8 +24,14 @@ class _HomeScreenState extends State<HomeScreen> {
   String currentWord = '';
   int currentDistance = 0 ;
   bool isRepeatedWord = false;
+  int tips = 0;
+  int tipsDistance = 299;
 
   List<WordItem> wordList = [];
+  WordItem currentItem = const WordItem(
+    distance: 0,
+    word: '',
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -35,8 +41,19 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           GameStatus(
             attempts: attempts,
+            tips: tips
           ),
           const SizedBox(height: 10,),
+          ElevatedButton(
+            onPressed: getTip,
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.tips_and_updates_outlined),
+                Text('Dica'),
+              ],
+            )
+          ),
           TextField(
             controller: inputController,
             decoration: const InputDecoration(
@@ -55,11 +72,11 @@ class _HomeScreenState extends State<HomeScreen> {
           // Resultado
           // Texto
           // WordItem
-          Offstage(offstage: attempts == 0, child: Result(distance: currentDistance, word: currentWord)),
+          Offstage(offstage: attempts == 0 && tips == 0, child: Result(distance: currentDistance, word: currentWord)),
           const SizedBox(height: 10,),
-          Offstage(offstage: attempts != 0, child: const WelcomeText(), ),
+          Offstage(offstage: attempts != 0 || tips != 0, child: const WelcomeText(), ),
           const SizedBox(height: 10,),
-          Offstage(offstage: attempts == 0, child: WordList(items: wordList,)),
+          Offstage(offstage: attempts == 0 && tips == 0, child: WordList(items: wordList,)),
         ]
       ),
     );
@@ -78,14 +95,34 @@ class _HomeScreenState extends State<HomeScreen> {
         currentWord = wordTyped;
         currentDistance = distance.distance;
         if (wordService.isValid(currentDistance)) {
-          wordList.add(WordItem(distance.distance, wordTyped));
-          wordList.sort((word1, word2) => word1.distance.compareTo(word2.distance));
+          addWords(distance.distance, wordTyped);
         }
         attempts++;
         inputController.clear();
       });
       developer.log('Usuário digitou: $wordTyped e foi a tentativa: $attempts, tem ${wordList.length} itens na lista');
     }
+  }
+
+  void getTip() async {
+    int tipValue;
+
+    if (wordList.isEmpty) {
+      tipValue = tipsDistance;
+    } else {
+      tipValue = wordList[0].distance < tipsDistance
+          ? wordList[0].distance ~/ 2
+          : tipsDistance;
+    }
+    developer.log('WordList: ${wordList.length}  TipValue: $tipValue');
+    final tip = await wordService.getTip(tipValue);
+    setState(() {
+      currentWord = tip.word;
+      currentDistance = tip.distance;
+      addWords(tip.distance, tip.word);
+      tipsDistance = (tipValue ~/ 2);
+      tips++;
+    });
   }
 
   bool wordAlreadyExists(String word) {
@@ -96,6 +133,12 @@ class _HomeScreenState extends State<HomeScreen> {
       }
     }
     return alreadyExists;
+  }
+
+  void addWords(int distance, String word) {
+    currentItem = WordItem(distance: distance, word: word);
+    wordList.add(currentItem);
+    wordList.sort((word1, word2) => word1.distance.compareTo(word2.distance));
   }
 
 }

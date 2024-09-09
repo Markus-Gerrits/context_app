@@ -19,10 +19,26 @@ class WordService {
     }
   }
 
+  Future<Distance> getTip(int distance) async {
+    final url = Uri.parse(
+        'https://api.contexto.me/machado/pt-br/tip/${getGameId()}/${distance.toString()}');
+    final result = await http.get(url);
+    final decoded = jsonDecode(result.body);
+    if (result.statusCode == result.statusCode.clamp(200, 299)) {
+      // sucesso
+      final distanceDecoded = decoded["distance"];
+      final Distance distance =
+          Distance(distance: distanceDecoded, word: decoded["word"]);
+      return distance;
+    } else {
+      return Distance(distance: -1, word: '');
+    }
+  }
+
   String getGameId() {
     final initialDate = DateTime(2022, 2, 23);
     final currentDate = DateTime.now();
-    return currentDate.difference(initialDate).inDays.toString();
+    return (currentDate.difference(initialDate).inDays - 1).toString() ;
   }
 
   bool isValid(int distance) {
