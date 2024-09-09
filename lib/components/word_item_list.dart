@@ -1,28 +1,29 @@
 import 'package:context_app/constants/colors.dart';
 import 'package:context_app/constants/dimensions.dart';
 import 'package:flutter/material.dart';
+import 'dart:math';
 
 class WordItem extends StatelessWidget {
-  final double size;
+  final int distance;
   final String word;
-  final double points;
 
-  const WordItem(this.size, this.word, this.points, {super.key});
+  const WordItem(this.distance, this.word, {super.key});
 
   Color getColor() {
-    if (points > Dimensions.farDistancRef) {
-      return AppColors.farColor;
-    } else if (points < Dimensions.nearDistanceRef) {
+    if (distance.toDouble() < Dimensions.nearDistanceRef) {
       return AppColors.nearColor;
     }
-
+    if (distance.toDouble() > Dimensions.farDistancRef) {
+      return AppColors.farColor;
+    }
+    
     return AppColors.mediumColor;
   }
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 15),
+      margin: const EdgeInsets.only(bottom: 10),
       height: 55,
       decoration: BoxDecoration(
         color: AppColors.tileBackground,
@@ -31,7 +32,7 @@ class WordItem extends StatelessWidget {
       child: Stack(
         children: [
           Container(
-            width: size,
+            width: getBarWidth(distance, context),
             decoration: BoxDecoration(
               color: getColor(),
               borderRadius: Dimensions.defaultRadius,
@@ -44,11 +45,11 @@ class WordItem extends StatelessWidget {
               children: [
                 Text(
                   word,
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 Text(
-                  points.toString(),
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  (distance + 1).toString(),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
               ],
             ),
@@ -56,5 +57,24 @@ class WordItem extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  double getBarWidth (int distance, BuildContext ctx) {
+    // width available
+    final width = MediaQuery.of(ctx).size.width - 32.0; // 32
+
+    const total = 111155;
+    const lambda = 0.5;
+    const startX = 0.0;
+    const endX = 100.0;
+    final startY = pdf(startX, lambda);
+    final endY = pdf(endX, lambda);
+    final x = distance / total * (endX - startX);
+    final result = (pdf(x, lambda) - endY)/(startY - endY) * 100;
+    return (result/100) * width;
+  }
+  
+  double pdf(double x, double lambda) {
+    return lambda * exp((-lambda) * x);
   }
 }
